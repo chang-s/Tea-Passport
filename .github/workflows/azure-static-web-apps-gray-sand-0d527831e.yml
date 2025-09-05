@@ -28,9 +28,9 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/"        # your static html at repo root
-          api_location: "api"      # <-- add this (points to /api)
-          output_location: "/"     # for plain HTML you can use "/" or leave it blank ""
+          app_location: "/"        # static html at repo root
+          api_location: "api"      
+          output_location: "/"     # for plain HTML
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
