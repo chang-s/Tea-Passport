@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your Tea Passport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-amber-50 p-4">
+    <div class="max-w-3xl mx-auto">
+        <a href="index.html" class="inline-block mb-4 text-sm text-blue-600">← Back</a>
+        <div class="bg-white rounded-2xl shadow-xl p-6">
+            <h1 id="title" class="text-2xl font-bold">Your Passport</h1>
+            <p id="subtitle" class="text-gray-600 mt-1">Badges you’ve collected</p>
+            <div id="badges" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6"></div>
+        </div>
+    </div>
+
+    <script>
+        const demoEvents = {
+            "evt-sept-2025": { name: "September Tea Time", badgeUrl: "https://placehold.co/300x300?text=Sept" },
+            "evt-oct-2025": { name: "October Tea Time", badgeUrl: "https://placehold.co/300x300?text=Oct" }
+        };
+        function getStore() {
+            return JSON.parse(localStorage.getItem("tea-passport") || '{"users":[],"checkins":[]}');
+        }
+
+        (function init() {
+            const params = new URLSearchParams(window.location.search);
+            const email = params.get("email");
+            const store = getStore();
+            const user = store.users.find(u => u.email === (email || "").toLowerCase());
+            const title = document.getElementById("title");
+            const subtitle = document.getElementById("subtitle");
+            const grid = document.getElementById("badges");
+
+            if (!user) {
+                title.textContent = "User not found";
+                subtitle.textContent = "Try checking in again from the landing page.";
+                return;
+            }
+            title.textContent = `${user.name}'s Passport`;
+            subtitle.textContent = user.email;
+
+            const myCheckins = store.checkins.filter(c => c.userId === user.id);
+            if (myCheckins.length === 0) {
+                grid.innerHTML = `<p class="text-gray-600">No badges yet. Go earn your first one! 🍵</p>`;
+                return;
+            }
+
+            for (const c of myCheckins) {
+                const ev = demoEvents[c.eventId];
+                const card = document.createElement("div");
+                card.className = "bg-rose-50 rounded-2xl p-3 shadow hover:scale-[1.02] transition";
+                card.innerHTML = `
+      <img class="w-full aspect-square object-cover rounded-xl" src="${ev.badgeUrl}" alt="${ev.name}">
+      <div class="mt-2 text-center font-medium">${ev.name}</div>
+    `;
+                grid.appendChild(card);
+            }
+        })();
+    </script>
+</body>
+</html>

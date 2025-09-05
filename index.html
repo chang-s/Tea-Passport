@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Tea Time Passport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-pink-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 text-center">
+        <h1 class="text-2xl font-bold mb-2">🍵 API Tea Time Passport</h1>
+        <p class="text-gray-600 mb-6">Collect monthly tea badges by checking in</p>
+        <div class="space-y-3 text-left">
+            <label class="block text-sm font-medium">Email</label>
+            <input id="email" type="email" placeholder="you@company.com"
+                class="w-full p-3 border rounded-xl focus:outline-none focus:ring" />
+            <label class="block text-sm font-medium mt-4">Event code</label>
+            <input id="eventCode" type="text" placeholder="e.g. JASMINE-SEPT"
+                class="w-full p-3 border rounded-xl focus:outline-none focus:ring" />
+        </div>
+        <button id="checkInBtn"
+            class="mt-6 w-full bg-green-400 text-white font-semibold py-3 rounded-xl hover:scale-[1.02] transition">
+            Check in
+        </button>
+        <p id="status" class="mt-4 text-sm text-gray-600"></p>
+    </div>
+
+    <script>
+        // TEMP IN-BROWSER STORE for local demo (we'll swap to Azure later)
+        const demoEvents = [
+            { id: "evt-sept-2025", code: "JASMINE-SEPT", name: "September Tea Time", badgeUrl: "https://placehold.co/100x100?text=Sept" },
+            { id: "evt-oct-2025", code: "OOLONG-OCT", name: "October Tea Time", badgeUrl: "https://placehold.co/100x100?text=Oct" }
+        ];
+
+        function getStore() {
+            return JSON.parse(localStorage.getItem("tea-passport") || '{"users":[],"checkins":[]}');
+        }
+        function setStore(s) {
+            localStorage.setItem("tea-passport", JSON.stringify(s));
+        }
+        function upsertUser(email, name) {
+            const store = getStore();
+            let user = store.users.find(u => u.email === email);
+            if (!user) {
+                user = { id: crypto.randomUUID(), email, name: name || email.split("@")[0] };
+                store.users.push(user);
+                setStore(store);
+            }
+            return user;
+        }
+        function addCheckin(userId, eventId) {
+            const store = getStore();
+            const already = store.checkins.find(c => c.userId === userId && c.eventId === eventId);
+            if (!already) {
+                store.checkins.push({ id: crypto.randomUUID(), userId, eventId, createdAt: new Date().toISOString() });
+                setStore(store);
+            }
+        }
+
+        document.getElementById("checkInBtn").addEventListener("click", () => {
+            const email = document.getElementById("email").value.trim().toLowerCase();
+            const code = document.getElementById("eventCode").value.trim().toUpperCase();
+            const status = document.getElementById("status");
+
+            if (!email || !code) { status.textContent = "Please enter email and event code."; return; }
+
+            const event = demoEvents.find(e => e.code === code);
+            if (!event) { status.textContent = "❌ Invalid event code."; return; }
+
+            let store = getStore();
+            let user = store.users.find(u => u.email === email);
+            if (!user) {
+                const name = prompt("Welcome! What's your name?");
+                user = upsertUser(email, name || "");
+            }
+            addCheckin(user.id, event.id);
+            status.textContent = "✅ Checked in! Redirecting...";
+            setTimeout(() => {
+                window.location.href = `profile.html?email=${encodeURIComponent(email)}`;
+            }, 600);
+        });
+    </script>
+</body>
+</html>
